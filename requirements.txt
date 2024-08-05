@@ -11,8 +11,10 @@ dj-database-url==2.2.0
 Django==5.0.6
 django-debug-toolbar==4.4.6
 django-scheduler==0.10.1
+gunicorn==22.0.0
 icalendar==5.0.13
 kombu==5.3.7
+packaging==24.1
 pillow==10.3.0
 prompt_toolkit==3.0.47
 psycopg2-binary==2.9.9
