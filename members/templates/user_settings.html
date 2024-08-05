@@ -1,0 +1,158 @@
+{% extends "master.html" %}
+{% load get_value %}
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .container {
+        font-family: 'Poppins', sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .header {
+        text-align: center;
+    }
+    h1, h2 {
+        font-weight: bold;
+    }
+    form {
+        width: 80%;
+        max-width: 600px;
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        margin-bottom: 20px;
+    }
+    fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+    }
+    legend {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    label {
+        font-size: 16px;
+        font-weight: bold;
+        display: block;
+        margin-top: 10px;
+    }
+    input, select, button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 16px;
+    }
+    button {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+    }
+    button:hover {
+        background-color: #0056b3;
+    }
+    hr {
+        width: 100%;
+        max-width: 600px;
+        margin: 20px 0;
+    }
+    ul {
+        width: 80%;
+        max-width: 600px;
+        list-style: none;
+        padding: 0;
+    }
+    li {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .time-range {
+        flex: 1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .reset-form {
+        margin-left: 10px;
+        padding: 0%;
+        width: 10%;
+    }
+    .reset-button {
+        width: auto;
+        padding: 5px 10px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+        font-size: 14px;
+    }
+    .reset-button:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<div class="container">
+    <div class="header">
+        <h1>Settings</h1>
+    </div>
+    
+    <form method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Time Ranges</legend>
+            {{ time_range_form.as_p }}
+            <button type="submit" name="update_time_range">Update Time Range</button>
+        </fieldset>
+    </form>
+
+    <form method="post">
+        {% csrf_token %}
+        <fieldset>
+            <legend>Group Reminder Frequencies</legend>
+            {% for form in freq_forms %}
+                {{ form.as_p }}
+            {% endfor %}
+            <button type="submit">Update Group Frequencies</button>
+        </fieldset>
+    </form>
+
+    <hr>
+    <h1>Current Settings</h1>
+    <h2><strong>Time Ranges:</strong></h2>
+    <ul>
+        {% for day, day_display in days_of_week %}
+            <li class="time-range">
+                <span>{{ day_display }}: {{ general_time_ranges|get_value:day|default:"None" }}</span>
+                <form method="post" class="reset-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="day_to_reset" value="{{ day }}">
+                    <button type="submit" name="reset_time_range" class="reset-button">Reset</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <hr>
+    <h2>All Group Reminder Frequencies</h2>
+    <ul>
+        {% for group, frequency in group_frequencies.items %}
+            <li><strong>Group:</strong> {{ group }} <strong> Reminder Frequency:</strong>every {{ frequency }} days</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

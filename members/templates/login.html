@@ -1,0 +1,49 @@
+{% extends "master.html" %}
+
+{% block title %}
+{% endblock %}
+
+
+{% block content %}
+<div class="loginpage">
+  <h1>Login</h1>
+  <form class="loginform" method="POST">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button class="loginbutton" type="submit">Submit</button>
+      <a href="{% url 'signup' %}">Dont have account? Create one!</a>
+  </form>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .loginpage {
+        padding: 20px;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        font-size: 20px;
+    }
+    .loginform {
+        background-color: #fff;
+        border-radius: 8px;
+        font-size: 18px;
+    }
+    .loginbutton {
+        background-color: #526BEF;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .loginform a {
+        display: block;
+        margin-top: 10px;
+        color: #526BEF;
+        text-decoration: none;
+        font-size: 12px;
+    }
+    .loginform a:hover {
+        text-decoration: underline;
+    }
+</style>
+</div>
+{% endblock %}

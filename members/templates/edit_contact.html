@@ -1,0 +1,10 @@
+{% extends 'contacts.html' %}
+{% block content %}
+<h2>Edit Contact</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+<a href="{% url 'contacts' %}">Cancel</a>
+{% endblock %}

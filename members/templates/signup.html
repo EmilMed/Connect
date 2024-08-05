@@ -1,0 +1,62 @@
+{% extends "master.html" %}
+
+{% block content %}
+<div class="signuppage">
+    <h1>Sign Up</h1>
+    <form class="signupform" method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div>
+            {{ form.username.label_tag }}
+            {{ form.username }}
+            {{ form.username.errors }}
+        </div>
+        <div>
+            {{ form.password1.label_tag }}
+            {{ form.password1 }}
+            {{ form.password1.errors }}
+        </div>
+        <div>
+            {{ form.password2.label_tag }}
+            {{ form.password2 }}
+            {{ form.password2.errors }}
+        </div>
+        <button class="signupbutton" type="submit">Submit</button>
+        <a href="{% url 'login' %}">Already have an account? Login!</a>
+    </form>
+</div>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .signuppage {
+        padding: 20px;
+        text-align: center;
+        font-family: 'Poppins', sans-serif;
+        font-size: 20px;
+    }
+    .signupform {
+        background-color: #fff;
+        border-radius: 8px;
+        font-size: 18px;
+        line-height: 2;
+    }
+    .signupbutton {
+        background-color: #526BEF;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+    .signupform a {
+        display: block;
+        margin-top: 10px;
+        color: #526BEF;
+        text-decoration: none;
+        font-size: 12px;
+    }
+    .signupform a:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}

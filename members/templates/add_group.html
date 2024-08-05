@@ -1,0 +1,89 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title %}
+    Add Groups
+{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    html, body {
+        height: 100%;
+        margin: 0;
+        background-color: #f5f5f5;
+    }
+    .container {
+        font-family: 'Poppins', sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .header {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px 0;
+        text-align: center;
+    }
+    .header h2 {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .form-container {
+        width: 80%;
+        max-width: 400px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .form-container input, .form-container button {
+        width: 100%;
+        font-size: 16px;
+        padding: 10px;
+        margin: 10px 0;
+        border: none;
+        outline: none;
+        border-radius: 5px;
+    }
+    .form-container button {
+        background-color: #007bff;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .form-container button:hover {
+        background-color: #0056b3;
+    }
+    .back-link {
+        margin-top: 20px;
+        text-decoration: none;
+        color: #007bff;
+        font-size: 16px;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="container">
+    <div class="header">
+        <h1>Add Group</h1>
+    </div>
+
+    <div class="form-container">
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="name" placeholder="Group Name">
+            <button type="submit">Save</button>
+        </form>
+        <a href="{% url 'groups' %}" class="back-link">Back to groups</a>
+    </div>
+</div>
+{% endblock %}

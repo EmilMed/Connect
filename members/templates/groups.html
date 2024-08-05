@@ -1,0 +1,118 @@
+{% extends 'master.html' %}
+{% load static %}
+{% block title %}Groups{% endblock %}
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .container {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f5f5;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        height: 100vh;
+    }
+    .header {
+        width: 100%;
+        padding: 10px;
+        background-color: #fff;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+    }
+    .header h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+    .header .icon {
+        width: 24px;
+        height: 24px;
+        cursor: pointer;
+    }
+    .groups-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        padding: 20px;
+    }
+    .group {
+        background-color: #eaeaea;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: background-color 0.3s;
+        position: relative;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .group:hover {
+        background-color: #dcdcdc;
+    }
+    .group img {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 10px;
+    }
+    .group span {
+        font-size: 16px;
+        font-weight: bold;
+        color: black;
+    }
+    .group a {
+        text-decoration: none;
+    }
+    .delete-button {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: red;
+        border: none;
+        border-radius: 5px;
+        padding: 5px 10px;
+        cursor: pointer;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    .add-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: inherit;
+    }
+    .add-group img {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 10px;
+    }
+</style>
+<div class="container">
+    <h1>Groups</h1>
+    <div class="groups-container">
+        {% for group in groups %}
+        <div class="group">
+            <a href="{% url 'group_detail' group.pk %}">
+                <img src="https://spng.pngfind.com/pngs/s/283-2836870_community-icon-transparent-background-png-download-transparent-transparent.png" alt="{{ group.name }}">
+                <span>{{ group.name }}</span>
+            </a>
+            <a href="{% url 'delete_group' group.pk %}" class="delete-button">Delete</a>
+        </div>
+        {% endfor %}
+        <div class="group add-group">
+            <a href="{% url 'add_group' %}">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Plus_font_awesome.svg/1200px-Plus_font_awesome.svg.png" alt="Add Group">
+                <span>Add Group</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

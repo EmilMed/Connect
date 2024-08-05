@@ -1,0 +1,139 @@
+{% extends "master.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}
+    Profile Details
+{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+    .profile-page-wrapper {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        color: #000;
+    }
+    .profile-page {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        width: 300px;
+        position: relative;
+    }
+    .profile-page h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .profile-page .profile-img-wrapper {
+        position: relative;
+        width: 150px;
+        height: 150px;
+        margin: 0 auto 20px auto;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    .profile-page .profile-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .profile-page .profile-img-wrapper .change-pic-btn {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        cursor: pointer;
+        display: none;
+        text-align: center;
+    }
+    .profile-page .profile-img-wrapper:hover .change-pic-btn {
+        display: block;
+    }
+    .profile-page label {
+        display: block;
+        margin-top: 10px;
+    }
+    .profile-page input, .profile-page select {
+        width: 94%;
+        padding: 8px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .profile-page button {
+        background-color: #000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
+
+<div class="profile-page-wrapper">
+    <div class="profile-page">
+        <h1>Profile Details</h1>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="profile-img-wrapper">
+                {% if profile.image %}
+                    <img src="{{ profile.image.url }}" alt="Profile Picture" id="profileImage">
+                {% else %}
+                    <img src="{% static 'profile_pics/default.jpg' %}" alt="Default Picture" id="profileImage">
+                {% endif %}
+                <label for="id_image" class="change-pic-btn">Change Picture</label>
+                <input type="file" name="image" id="id_image" class="hidden" accept="image/*" onchange="previewImage(event)">
+            </div>
+            {{ form.non_field_errors }}
+            <label for="id_name">Name:</label>
+            {{ form.name }}
+
+            <label for="id_phone">Phone:</label>
+            {{ form.phone }}
+
+            <label for="id_hobbies">Hobbies:</label>
+            {{ form.hobbies }}
+
+            <label for="id_birthday">Birthday:</label>
+            {{ form.birthday }}
+
+            <label for="id_food">Favorite Food:</label>
+            {{ form.food }}
+
+            <button type="submit">Save</button>
+        </form>
+    </div>
+</div>
+
+<script>
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const output = document.getElementById('profileImage');
+        output.src = reader.result;
+    }
+    reader.readAsDataURL(event.target.files[0]);
+}
+</script>
+
+{% endblock %}

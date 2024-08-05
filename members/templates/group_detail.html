@@ -1,0 +1,226 @@
+{% extends 'master.html' %}
+
+{% block title %}
+    Contacts in {{ group.name }}
+{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .container {
+        font-family: 'Poppins', sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .header {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px 0;
+        text-align: center;
+    }
+    .header h2 {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .contacts-count {
+        font-size: 16px;
+        margin-bottom: 20px;
+    }
+    .search-bar {
+        width: 80%;
+        max-width: 400px;
+        margin-bottom: 20px;
+        position: relative;
+    }
+    .search-bar input {
+        width: 100%;
+        border: none;
+        outline: none;
+        font-size: 16px;
+        padding: 10px 20px 10px 40px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+    .search-bar .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 20px;
+        color: #666;
+    }
+    .alphabet-sidebar {
+        position: fixed;
+        top: 150px;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 25px;
+        max-height: 80vh;
+        overflow-y: auto;
+        z-index: 100;
+    }
+    .alphabet-sidebar ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .alphabet-sidebar li {
+        margin: 3px 0;
+        text-align: center;
+        width: 100%;
+    }
+    .alphabet-sidebar a {
+        text-decoration: none;
+        color: #007bff;
+        font-size: 12px;
+        display: block;
+        width: 100%;
+    }
+    .contacts-list {
+        width: 80%;
+        max-width: 400px;
+        margin-top: 20px;
+    }
+    .contact-card {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .contact-info {
+        display: flex;
+        align-items: center;
+    }
+    .contact-info img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-right: 20px;
+    }
+    .contact-info h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .contact-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    .contact-actions a {
+        text-decoration: none;
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .contact-actions .edit-button {
+        background-color: #6c757d;
+    }
+</style>
+<div class="container">
+    <div class="header">
+        <h2>{{ group.name }}</h2>
+        <p class="contacts-count">{{ group_people_count }} contacts</p>
+    </div>
+
+    <div class="search-bar">
+        <i class="fa fa-search search-icon"></i>
+        <form method="get" action="{% url 'group_detail' group.pk %}">
+            <input type="text" name="q" id="searchInput" placeholder="Search contacts..." value="{{ query }}">
+        </form>
+    </div>
+
+    <div class="alphabet-sidebar">
+        <ul>
+            {% for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
+            <li><a href="#{{ letter }}" class="alphabet-link">{{ letter }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <div class="contacts-list" id="contacts-list">
+        {% if query %}
+            {% for contact in contacts %}
+            <div class="contact-card">
+                <div class="contact-info">
+                    <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
+                    <h3>{{ contact.name }}</h3>
+                </div>
+                <div class="contact-actions">
+                    <a href="{% url 'contact_details' contact.pk %}?source=groups" class="explore-button">Explore</a>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            {% for letter, letter_contacts in grouped_contacts.items %}
+            <div class="alphabet-section" id="{{ letter }}">
+                <h3>{{ letter }}</h3>
+                {% for contact in letter_contacts %}
+                <div class="contact-card">
+                    <div class="contact-info">
+                        <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
+                        <h3>{{ contact.name }}</h3>
+                    </div>
+                    <div class="contact-actions">
+                        <a href="{% url 'contact_details' contact.pk %}?source=groups" class="explore-button">Explore</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <a href="{% url 'groups' %}">Back to groups</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var alphabetLinks = document.querySelectorAll('.alphabet-link');
+    var contactsList = document.getElementById('contacts-list');
+
+    alphabetLinks.forEach(function(link) {
+        link.addEventListener('mouseover', function(event) {
+            var targetId = this.getAttribute('href').substring(1);
+            var targetElement = document.getElementById(targetId);
+            if (targetElement) {
+                contactsList.scrollTo({
+                    top: targetElement.offsetTop - contactsList.offsetTop,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+
+    var searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('keyup', function() {
+        var filter = searchInput.value.toUpperCase();
+        var contactItems = document.querySelectorAll('.contact-card');
+
+        contactItems.forEach(function(item) {
+            var contactName = item.querySelector('h3').innerText;
+            if (contactName.toUpperCase().indexOf(filter) > -1) {
+                item.style.display = "";
+            } else {
+                item.style.display = "none";
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

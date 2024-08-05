@@ -1,0 +1,148 @@
+{% extends 'master.html' %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    .container {
+        font-family: 'Poppins', sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .header {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px 0;
+    }
+    .header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .notifications-list {
+        list-style: none;
+        padding: 0;
+        width: 100%;
+        max-width: 800px; /* Adjusted max-width for the container */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two columns layout */
+        gap: 20px; /* Gap between grid items */
+    }
+    .notification-card {
+        background-color: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center; /* Center content horizontally */
+        justify-content: center; /* Center content vertically */
+    }
+    .notification-image {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .notification-image img {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin-bottom: 10px;
+    }
+    .notification-details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center; /* Center text */
+    }
+    .notification-details h3 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .notification-details .event, 
+    .notification-details .group,
+    .notification-details .last-seen {
+        font-size: 14px;
+        color: #666;
+        margin: 5px 0;
+    }
+    .notification-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Center buttons horizontally */
+    }
+    .notification-actions a,
+    .notification-actions button {
+        background: none;
+        border: none;
+        color: #fff;
+        text-decoration: none;
+        cursor: pointer;
+        font-size: 14px;
+        background-color: black;
+        border-radius: 8px;
+        margin-top: 10px;
+        padding: 10px 20px; /* Add padding for buttons */
+    }
+    .notification-actions button {
+        margin-top: 10px;
+    }
+</style>
+<div class="container">
+  <h1>Connect</h1>
+    <div class="header">
+        <h2>New reminders</h2>
+    </div>
+    <form id="markAsReadForm" method="post" action="{% url 'mark_as_read' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="mark_as_read">
+        <ul class="notifications-list">
+            {% for notification in unread_notifications %}
+            <li class="notification-card">
+                <div class="notification-image">
+                    <img src="{{ MEDIA_URL }}default.jpg" alt="{{ notification.contact.name }}">
+                    <h3>{{ notification.contact.name }}</h3>
+                </div>
+                <div class="notification-details">
+                    <p class="event">EVENT: {{ notification.event }} </p>
+                    <p class="group">GROUP: {{ notification.contact.groups.all|join:", "|default:None }}</p>
+                    <p class="last-seen">LAST SEEN: {{ notification.last_seen|date:"d M Y H:i"  }}</p>
+                </div>
+                <div class="notification-actions">
+                    <a href="{% url 'notification_detail' notification.id %}" class="view-button">Connect</a>
+                    <button type="submit" name="notification_ids" value="{{ notification.id }}" class="mark-as-read-button">Skip</button>
+                </div>
+            </li>
+            {% empty %}
+            <li>No news yet!</li>
+            {% endfor %}
+        </ul>
+    </form>
+
+    <div class="header">
+        <h2>Read</h2>
+    </div>
+    <ul class="notifications-list">
+        {% for notification in read_notifications %}
+        <li class="notification-card">
+            <div class="notification-image">
+                <img src="{{ MEDIA_URL }}default.jpg" alt="{{ notification.contact.name }}">
+                <h3>{{ notification.contact.name }}</h3>
+            </div>
+            <div class="notification-details">
+                <p class="event">EVENT: Meeting</p>
+                <p class="group">GROUP: {{ notification.contact.groups.all|join:", "|default:None }}</p>
+                <p class="last-seen">LAST SEEN: {{ notification.last_seen|default:None }}</p>
+            </div>
+            <div class="notification-actions">
+                <a href="{% url 'notification_detail' notification.id %}" class="connect-button">Connect</a>
+            </div>
+        </li>
+        {% empty %}
+        <li>None</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

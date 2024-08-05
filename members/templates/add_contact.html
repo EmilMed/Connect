@@ -1,0 +1,163 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block title %}
+    Add Contact
+{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+    html, body {
+        height: 100%;
+        margin: 0;
+        background-color: #f5f5f5;
+    }
+    .container {
+        font-family: 'Poppins', sans-serif;
+        padding: 20px;
+        background-color: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+    }
+    .header {
+        width: 100%;
+        max-width: 800px;
+        padding: 10px 0;
+        text-align: center;
+    }
+    .header h2 {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .form-container {
+        width: 80%;
+        max-width: 400px;
+        background-color: #fff;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 10px;
+        font-size: 14px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        width: 100%;
+    }
+    .form-group select {
+        height: auto;
+    }
+    .form-group label {
+        flex: 1;
+        margin-bottom: 5px;
+    }
+    .form-group input {
+        flex: 2;
+    }
+    .form-group input[type="file"] {
+        padding: 0;
+    }
+    .checkbox-group {
+        display: flex;
+        flex-direction: column;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 5px;
+    }
+    .checkbox-item label {
+        margin: 0;
+        font-weight: normal;
+    }
+    .checkbox-item input {
+        margin-left: auto;
+    }
+    .btn {
+        background-color: #007bff;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        width: 100%;
+        margin-top: 10px;
+    }
+    .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 20px;
+        text-decoration: none;
+        color: #007bff;
+        font-size: 16px;
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="container">
+    <div class="header">
+        <h1>Add Contact</h1>
+    </div>
+
+    <div class="form-container">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_name">Name:</label>
+                {{ form.name }}
+            </div>
+            <div class="form-group">
+                <label for="id_phone">Phone:</label>
+                {{ form.phone }}
+            </div>
+            <div class="form-group">
+                <label for="id_hobbies">Hobbies:</label>
+                {{ form.hobbies }}
+            </div>
+            <div class="form-group">
+                <label for="id_birthday">Birthday:</label>
+                {{ form.birthday }}
+            </div>
+            <div class="form-group">
+                <label for="id_food">Food:</label>
+                {{ form.food }}
+            </div>
+            <div class="form-group">
+                <label for="id_picture">Picture:</label>
+                {{ form.picture }}
+            </div>
+            <div class="form-group">
+                <label>Groups:</label>
+                <div class="checkbox-group">
+                    {% for checkbox in form.groups %}
+                        <div class="checkbox-item">
+                            <label>{{ checkbox.choice_label }}</label>
+                            {{ checkbox.tag }}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="submit" class="btn">Save</button>
+        </form>
+        <a href="{% url 'contacts' %}" class="back-link">Back to contacts</a>
+    </div>
+</div>
+{% endblock %}
