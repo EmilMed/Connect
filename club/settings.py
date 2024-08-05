@@ -93,14 +93,9 @@ WSGI_APPLICATION = 'club.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'new_database',
-        'USER': 'postgres',
-        'PASSWORD': 'wyus763dIOP',
-        'HOST': 'localhost',  # Or the appropriate host
-        'PORT': '5432',  # Default port for PostgreSQL
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL')
+    )
 }
 
 
