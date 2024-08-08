@@ -29,7 +29,4 @@ urlpatterns = [
     path('schedule_meeting/<int:notification_id>/', views.schedule_meeting, name='schedule_meeting'),
     path('delete_meeting/<int:meeting_id>/', views.delete_meeting, name='delete_meeting'),
     path('day_calendar/<str:date>/', views.day_calendar, name='day_calendar'),
-]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

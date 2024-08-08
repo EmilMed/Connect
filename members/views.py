@@ -27,6 +27,8 @@ def profile(request):
             form.save()
             messages.success(request, "Profile updated successfully.")
             return redirect('profile')
+        else:
+            print(form.errors)
     else:
         form = ProfileForm(instance=profile)
     return render(request, 'profile.html', {
@@ -167,6 +169,7 @@ def delete_group(request, pk):
 
 from django.utils import timezone
 
+@login_required
 def calendar(request):
     user = request.user
     now = timezone.now()
@@ -189,6 +192,7 @@ def calendar(request):
     }
     return render(request, 'calendar.html', context)
 
+@login_required
 def delete_meeting(request, meeting_id):
     if request.method == 'POST':
         meeting = get_object_or_404(Meeting, id=meeting_id)
@@ -200,6 +204,7 @@ def delete_meeting(request, meeting_id):
     
 from django.middleware.csrf import get_token 
 
+@login_required
 def day_calendar(request, date):
     user = request.user
     selected_date = datetime.strptime(date, '%Y-%m-%d').date()
@@ -250,6 +255,7 @@ def user_login(request):
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
 
+@login_required
 def user_logout(request):
     logout(request)
     return redirect('login')
@@ -316,6 +322,7 @@ def delete_contact(request, pk):
         return redirect('contacts')
     return render(request, 'delete_contact.html', {'contact': contact})
 
+@login_required
 def edit_contact(request, pk):
     contact = get_object_or_404(Contact, pk=pk, user=request.user)
     if request.method == "POST":
@@ -446,6 +453,7 @@ def user_settings(request):
 
 #SCHEDULE MEETING FUNCTIONS
 
+@login_required
 def schedule_meeting(request, notification_id):
     notification = get_object_or_404(Notification, id=notification_id, user=request.user)
     group = Group.objects.filter(user=request.user).first()

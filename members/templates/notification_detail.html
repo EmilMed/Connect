@@ -1,4 +1,5 @@
 {% extends 'master.html' %}
+{% load static %}
 
 {% block content %}
 <style>
@@ -101,7 +102,11 @@
         <h1>Meeting</h1>
     </div>
     <div class="profile-picture">
-        <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
+        {% if notification.contact.picture %}
+            <img src="{{ notification.contact.picture.url }}" alt="{{ notification.contact.name }}">
+        {% else %}
+            <img src="{% static 'profile_pics/default.jpg' %}" alt="{{ notification.contact.name }}">
+        {% endif %}
     </div>
     <div class="contact-name">{{ contact.name }}</div>
     <div class="group-name">

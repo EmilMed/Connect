@@ -1,4 +1,5 @@
 {% extends 'master.html' %}
+{% load static %}
 
 {% block title %}
     Contacts in {{ group.name }}
@@ -157,7 +158,11 @@
             {% for contact in contacts %}
             <div class="contact-card">
                 <div class="contact-info">
-                    <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
+                    {% if contact.picture %}
+                        <img src="{{ contact.picture.url }}" alt="{{ contact.name }}">
+                    {% else %}
+                        <img src="{% static 'profile_pics/default.jpg' %}" alt="{{ contact.name }}">
+                    {% endif %}
                     <h3>{{ contact.name }}</h3>
                 </div>
                 <div class="contact-actions">
@@ -172,7 +177,11 @@
                 {% for contact in letter_contacts %}
                 <div class="contact-card">
                     <div class="contact-info">
-                        <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
+                        {% if contact.picture %}
+                            <img src="{{ contact.picture.url }}" alt="{{ contact.name }}">
+                        {% else %}
+                            <img src="{% static 'profile_pics/default.jpg' %}" alt="{{ contact.name }}">
+                        {% endif %}
                         <h3>{{ contact.name }}</h3>
                     </div>
                     <div class="contact-actions">
