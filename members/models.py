@@ -16,8 +16,8 @@ class LoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
 class Profile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(default="default.jpg", upload_to="profile_pics")
+    user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
+    image = models.ImageField(default='profile_pics/default.jpg', upload_to='profile_pics/')
     name = models.CharField(max_length=100, blank=True)
     phone = models.IntegerField(blank=True, null=True)
     hobbies = models.CharField(max_length=100, blank=True)

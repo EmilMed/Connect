@@ -5,7 +5,6 @@ from . import views
 
 urlpatterns = [
     path('', views.main, name='main'),
-    path('members/', views.members, name='members'),
     path('login/', views.user_login, name='login'),
     path('signup/', views.user_signup, name='signup'),
     path('logout/', views.user_logout, name='logout'),
@@ -29,4 +28,4 @@ urlpatterns = [
     path('schedule_meeting/<int:notification_id>/', views.schedule_meeting, name='schedule_meeting'),
     path('delete_meeting/<int:meeting_id>/', views.delete_meeting, name='delete_meeting'),
     path('day_calendar/<str:date>/', views.day_calendar, name='day_calendar'),
-] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

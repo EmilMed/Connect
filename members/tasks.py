@@ -25,6 +25,8 @@ def generate_notifications():
     for group in Group.objects.all():
         for contact in group.contacts.all():
             user = group.user
+            logger.info(f"Processing notifications for user {user.username} and contact {contact.name}")
+            
             last_meeting = Meeting.objects.filter(user=user, group=group, person_met=contact).order_by('-timestamp').first()
             user_settings = UserSettings.objects.filter(user=user, group=group).first()
             future_meeting_exists = Meeting.objects.filter(user=user, group=group, person_met=contact, scheduled_time__gte=now).exists()
@@ -32,7 +34,7 @@ def generate_notifications():
             if future_meeting_exists:
                 logger.info(f"Future meeting already scheduled for {user.username} and {contact.name} from {group.name}. Skipping notification.")
                 continue
-            
+
             if user_settings:
                 frequency = user_settings.frequency
                 time_ranges = user_settings.preferred_time_ranges.all()
@@ -41,28 +43,34 @@ def generate_notifications():
                 preferred_start_times = {tr.day: tr.start_time for tr in time_ranges}
                 preferred_end_times = {tr.day: tr.end_time for tr in time_ranges}
 
+                # Skip notification if no preferred days are set
+                if not preferred_days:
+                    logger.info(f"No preferred days set for {user.username} in group {group.name}. Skipping notification.")
+                    continue
+
                 if last_meeting:
                     last_meeting_time = last_meeting.timestamp
                     if timezone.is_naive(last_meeting_time):
                         last_meeting_time = timezone.make_aware(last_meeting_time, timezone.get_current_timezone())
-                    
+
                     time_since_last_meeting = now - last_meeting_time
                     if time_since_last_meeting > timedelta(minutes=frequency):
                         message = f"Remember to check in with {contact.name} from {group.name}!"
-                        suggested_time = schedule_meeting_time(
-                            now, preferred_start_times, preferred_end_times, preferred_days
-                        )
+                        suggested_time = schedule_meeting_time(now, preferred_start_times, preferred_end_times, preferred_days)
                         if suggested_time:
                             Notification.objects.create(
                                 user=user,
                                 message=message,
                                 scheduled_meeting_time=suggested_time,
                                 contact=contact,
-                                event='Meeting',  # Set event type
-                                last_seen=last_meeting_time  # Set last_seen to last meeting time
+                                event='Meeting',
+                                last_seen=last_meeting_time
                             )
+                            logger.info(f"Notification created for {user.username} with {contact.name}.")
+                        else:
+                            logger.info(f"No valid meeting time found for {user.username} with {contact.name}. Skipping notification.")
                     else:
-                        logger.info(f"Conditions not met. Time since last meeting: {time_since_last_meeting}, Frequency: {frequency}")
+                        logger.info(f"Conditions not met for {user.username}. Time since last meeting: {time_since_last_meeting}, Frequency: {frequency}")
                 else:
                     logger.info(f"Creating notification for {user.username}")
                     message = f"You haven't met {contact.name} from your {group.name} group yet."
@@ -73,9 +81,12 @@ def generate_notifications():
                             message=message,
                             contact=contact,
                             scheduled_meeting_time=suggested_time,
-                            event='Meeting',  # Set event type
-                            last_seen=None  # No last meeting, so set last_seen to None
+                            event='Meeting',
+                            last_seen=None
                         )
+                        logger.info(f"Notification created for {user.username} with {contact.name}.")
+                    else:
+                        logger.info(f"No valid meeting time found for {user.username} with {contact.name}. Skipping notification.")
             else:
                 logger.info(f"No settings found for {user.username} and {group.name}")
 
@@ -87,7 +98,8 @@ def schedule_meeting_time(now, preferred_start_times, preferred_end_times, prefe
     preferred_days = [day for day in preferred_days if day in valid_days]
 
     if not preferred_days:
-        raise ValueError("Preferred days list is empty after filtering")
+        # Return None to indicate that no valid days are available
+        return None
 
     random.shuffle(preferred_days)
 
@@ -128,6 +140,7 @@ def schedule_meeting_time(now, preferred_start_times, preferred_end_times, prefe
                 return suggested_time
 
             except ValueError as e:
+                logger.error(f"Error while scheduling time for {preferred_day}: {e}")
                 continue
 
-    raise ValueError("No valid preferred days found")
+    return None

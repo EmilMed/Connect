@@ -16,7 +16,7 @@
             {{ form.password1 }}
             {{ form.password1.errors }}
         </div>
-        <div>
+        <div style>
             {{ form.password2.label_tag }}
             {{ form.password2 }}
             {{ form.password2.errors }}
@@ -57,6 +57,20 @@
     }
     .signupform a:hover {
         text-decoration: underline;
+    }
+    ul.errorlist {
+      list-style-type: none; /* Removes the default bullet point */
+      padding-left: 0;       /* Removes the default padding */
+    }
+
+    ul.errorlist li::marker {
+        display: none;         /* Hides the bullet marker */
+    }
+
+    /* Optionally, you can also add some additional styles to make the error messages look better */
+    ul.errorlist li {
+        color: rgb(179, 8, 8);            /* Changes the color of the error message */
+        font-weight: bold;     /* Makes the error message bold */
     }
 </style>
 {% endblock %}

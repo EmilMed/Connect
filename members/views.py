@@ -20,17 +20,17 @@ from collections import defaultdict
 
 @login_required
 def profile(request):
-    profile = get_object_or_404(Profile, user=request.user)
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    
     if request.method == "POST":
         form = ProfileForm(request.POST, request.FILES, instance=profile)
         if form.is_valid():
             form.save()
             messages.success(request, "Profile updated successfully.")
             return redirect('profile')
-        else:
-            print(form.errors)
     else:
         form = ProfileForm(instance=profile)
+    
     return render(request, 'profile.html', {
         'profile': profile,
         'form': form
@@ -73,7 +73,6 @@ def mark_as_read(request):
         notifications_read = Notification.objects.filter(id__in=notification_ids)
         for notification in notifications_read:
             notification.mark_as_read()
-        messages.success(request, "Notifications marked as read")
         return redirect("connect")
     
     return render(request, 'connect.html', {
@@ -250,7 +249,7 @@ def user_login(request):
             user = authenticate(request, username=username, password=password)
             if user:
                 login(request, user)    
-                return redirect('members')
+                return redirect('main')
     else:
         form = LoginForm()
     return render(request, 'login.html', {'form': form})
@@ -260,16 +259,16 @@ def user_logout(request):
     logout(request)
     return redirect('login')
 
-def members(request):
-  return render(request, 'main.html')
-
 #MAIN FUNCTIONS
 
 @login_required
 def main(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
     unread_notifications_count = Notification.objects.filter(user=request.user, read=False).count()
+    
     context = {
         'unread_notifications_count': unread_notifications_count,
+        'profile': profile,
     }
     return render(request, 'main.html', context)
 
@@ -310,6 +309,8 @@ def add_contact(request):
             contact.save()
             form.save_m2m()
             return redirect('contacts')
+        else:
+            print(form.errors)  # Print form errors for debugging
     else:
         form = ContactForm(user=request.user)
     return render(request, 'add_contact.html', {'form': form})

@@ -86,4 +86,9 @@
         <a href="{% url 'groups' %}" class="back-link">Back to groups</a>
     </div>
 </div>
+<script>
+    document.querySelector('.btn').addEventListener('click', function() {
+        console.log('Form submitted');
+    });
+</script>
 {% endblock %}

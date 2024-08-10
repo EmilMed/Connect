@@ -99,7 +99,7 @@
                 {% if profile.image %}
                     <img src="{{ profile.image.url }}" id="profileImage">
                 {% else %}
-                    <img src="{% static 'profile_pics/default.jpg' %}" id="profileImage">
+                    <img src="{{ MEDIA_URL }}profile_pics/default.jpg" id="profileImage">
                 {% endif %}
                 <label for="id_image" class="change-pic-btn">Change Picture</label>
                 <input type="file" name="image" id="id_image" class="hidden" accept="image/*" onchange="previewImage(event)">

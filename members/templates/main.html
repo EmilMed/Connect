@@ -10,7 +10,11 @@
     {% if request.user.is_authenticated %}
       <h1>Welcome {{ request.user.first_name }}!</h1>
       <div class="profile-picture-container">
-          <img src="{{ request.user.profile.image.url }}" alt="Profile Picture" class="profile-picture">
+                {% if profile.image %}
+                    <img src="{{ profile.image.url }}" id="profileImage">
+                {% else %}
+                    <img src="{{ MEDIA_URL }}profile_pics/default.jpg" id="profileImage">
+                {% endif %}
       </div>
       <div class="menu-options">
           <a href="{% url 'connect' %}" class="menu-item connect-item">
@@ -55,7 +59,7 @@
         border-radius: 50%;
         overflow: hidden;
     }
-    .profile-picture {
+    .profile-picture-container img {
         width: 100%;
         height: 100%;
         object-fit: cover;
