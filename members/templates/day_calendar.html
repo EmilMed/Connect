@@ -13,7 +13,23 @@
         margin-top: 20px;
     }
     .header {
-        text-align: center;
+        width: 25%;
+        max-width: 800px;
+        padding: 10px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    .back-button {
+        font-size: 20px;
+        cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
     }
     .fc-toolbar-title {
         font-size: 24px;
@@ -42,20 +58,37 @@
     .fc-event .btn {
         margin-left: 10px;
     }
-    .btn-primary, .btn-danger {
-        background-color: black;
-        color:#fff;
+    .btn-primary {
+        background-color: #4CAF50;
+        color: white;
         padding: 7px 14px;
         border-radius: 5px;
-        font-size: 16px;
+        font-size: 14px;
         font-weight: bold;
+        border: none;
         text-align: center;
         text-decoration: none;
-        margin: 5px;
-        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-primary:hover {
+        background-color: #45a049;
     }
     .btn-danger {
-        background-color: #dc3545;
+        background-color: #f44336;
+        color: white;
+        padding: 7px 14px;
+        border-radius: 5px;
+        font-size: 14px;
+        font-weight: bold;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .btn-danger:hover {
+        background-color: #d32f2f;
     }
     .calendar-controls {
         display: flex;
@@ -75,10 +108,13 @@
 </style>
 
 <div class="container">
-    <div class="calendar-controls">
-        <div>
-            <a href="{% url 'calendar' %}" class="btn btn-primary">Back to Calendar</a>
-        </div>
+    <div class="header">
+        <a class="back-button" href="{% url 'calendar' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+            </svg>
+        </a>
+        <h1>Day Calendar</h1>
     </div>
     <div id="calendar"></div>
 </div>
@@ -93,43 +129,54 @@ document.addEventListener('DOMContentLoaded', function() {
         initialDate: '{{ selected_date }}',
         events: JSON.parse('{{ events|escapejs }}'),
         eventContent: function(arg) {
+            var editButton = document.createElement('button');
+            editButton.innerHTML = 'Edit';
+            editButton.classList.add('btn', 'btn-primary', 'btn-sm');
+            editButton.onclick = function() {
+                const eventId = arg.event.id;
+                if (eventId) {
+                    window.location.href = "{% url 'edit_meeting' 0 %}".replace('0', eventId);
+                } else {
+                    alert('Invalid event ID.');
+                }
+            };
+
+            var deleteForm = document.createElement('form');
+            deleteForm.method = 'POST';
+            deleteForm.action = "{% url 'delete_meeting' 0 %}".replace('0', arg.event.id);
+
+            var csrfTokenInput = document.createElement('input');
+            csrfTokenInput.type = 'hidden';
+            csrfTokenInput.name = 'csrfmiddlewaretoken';
+            csrfTokenInput.value = '{{ csrf_token }}';
+            deleteForm.appendChild(csrfTokenInput);
+
             var deleteButton = document.createElement('button');
+            deleteButton.type = 'submit';
             deleteButton.innerHTML = 'Delete';
             deleteButton.classList.add('btn', 'btn-danger', 'btn-sm');
             deleteButton.onclick = function() {
-                if (confirm('Are you sure you want to delete this meeting?')) {
-                    fetch('{% url "delete_meeting" 0 %}'.replace('0', arg.event.id), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': '{{ csrf_token }}'
-                        }
-                    }).then(response => response.json())
-                      .then(data => {
-                          if (data.success) {
-                              window.location.href = data.redirect_url;
-                          } else {
-                              alert('Failed to delete meeting');
-                          }
-                      });
-                }
+                return confirm('Are you sure you want to delete this meeting?');
             };
+            deleteForm.appendChild(deleteButton);
 
             var eventTitle = document.createElement('span');
             eventTitle.classList.add('fc-event-title');
             eventTitle.innerHTML = arg.event.title;
-            
+
             var eventContainer = document.createElement('div');
             eventContainer.style.display = 'flex';
             eventContainer.style.justifyContent = 'space-between';
             eventContainer.style.alignItems = 'center';
             eventContainer.appendChild(eventTitle);
-            eventContainer.appendChild(deleteButton);
+            eventContainer.appendChild(editButton);
+            eventContainer.appendChild(deleteForm);
 
             return { domNodes: [eventContainer] };
         }
     });
     calendar.render();
 });
+
 </script>
 {% endblock %}

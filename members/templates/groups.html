@@ -15,22 +15,23 @@
         height: 100vh;
     }
     .header {
-        width: 100%;
-        padding: 10px;
-        background-color: #fff;
+        width: 20%;
+        max-width: 800px;
+        padding: 10px 0;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
-        box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+        position: relative;
     }
-    .header h1 {
-        margin: 0;
-        font-size: 24px;
-    }
-    .header .icon {
-        width: 24px;
-        height: 24px;
+    .back-button {
+        font-size: 20px;
         cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
     }
     .groups-container {
         display: grid;
@@ -96,7 +97,14 @@
     }
 </style>
 <div class="container">
-    <h1>Groups</h1>
+    <div class="header">
+        <a class="back-button" href="{% url 'main' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+            </svg>
+        </a>
+        <h1>Groups</h1>
+    </div>
     <div class="groups-container">
         {% for group in groups %}
         <div class="group">

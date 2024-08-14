@@ -4,12 +4,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('', views.main, name='main'),
+    path('', views.user_login, name='login'),
     path('login/', views.user_login, name='login'),
+    path('main/', views.main, name='main'),
     path('signup/', views.user_signup, name='signup'),
     path('logout/', views.user_logout, name='logout'),
     path('profile/', views.profile, name='profile'),
-    path('profile/edit_profile/', views.edit_profile, name='edit_profile'),
     path('connect/', views.connect, name='connect'),
     path('calendar/', views.calendar, name='calendar'),
     path('contacts/', views.contact_list, name='contacts'),
@@ -26,6 +26,7 @@ urlpatterns = [
     path('mark-as-read/', views.mark_as_read, name='mark_as_read'),
     path('reset_time_range/<str:day>/', views.reset_time_range, name='reset_time_range'),
     path('schedule_meeting/<int:notification_id>/', views.schedule_meeting, name='schedule_meeting'),
+    path('edit_meeting/<int:meeting_id>/', views.edit_meeting, name='edit_meeting'),
     path('delete_meeting/<int:meeting_id>/', views.delete_meeting, name='delete_meeting'),
     path('day_calendar/<str:date>/', views.day_calendar, name='day_calendar'),
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

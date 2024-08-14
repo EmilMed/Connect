@@ -31,42 +31,30 @@
       box-sizing: border-box;
       height: 50px;
   }
-  .navbar .back-arrow {
+  .navbar .nav-item {
       font-size: 20px;
       cursor: pointer;
+      text-decoration: none;
+      color: #fff;
   }
   .navbar .app-name {
       font-size: 20px;
       font-weight: bold;
-      text-align: center;
-      flex-grow: 1;
-      text-decoration: none;
       color: #fff;
-  }
-  .navbar .settings-icon {
-      font-size: 20px;
-      cursor: pointer;
-      color: #fff;
-      text-decoration: none;
-  }
-  .navbar .spacer {
-      flex-grow: 1;
-  }
-  .content {
-      padding: 20px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
   }
 </style>
 <body>
 <div class="navbar">
-    <div class="back-arrow" onclick="history.back()">
-        &#8592;
-    </div>
-    <div class="spacer"></div>
-    <a class="app-name" href="{% url 'main' %}">
-        Connect
+    <a class="nav-item" href="{% url 'main' %}">
+        Home
     </a>
-    <div class="spacer"></div>
-    <a href="{% url 'user_settings' %}" class="settings-icon">
+    <div class="app-name">
+        Connect
+    </div>
+    <a href="{% url 'user_settings' %}" class="nav-item">
       &#9881;
     </a>
 </div>

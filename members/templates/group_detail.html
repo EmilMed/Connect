@@ -17,10 +17,23 @@
         align-items: center;
     }
     .header {
-        width: 100%;
+        width: 20%;
         max-width: 800px;
         padding: 10px 0;
-        text-align: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    .back-button {
+        font-size: 20px;
+        cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
     }
     .header h2 {
         font-size: 24px;
@@ -106,6 +119,7 @@
         height: 50px;
         border-radius: 50%;
         margin-right: 20px;
+        object-fit: cover;
     }
     .contact-info h3 {
         margin: 0;
@@ -134,9 +148,14 @@
 </style>
 <div class="container">
     <div class="header">
-        <h2>{{ group.name }}</h2>
-        <p class="contacts-count">{{ group_people_count }} contacts</p>
+        <a class="back-button" href="{% url 'groups' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+            </svg>
+        </a>
+        <h1>{{ group.name }}</h1>
     </div>
+    <p class="contacts-count">{{ group_people_count }} contacts</p>
 
     <div class="search-bar">
         <i class="fa fa-search search-icon"></i>
@@ -180,7 +199,7 @@
                         {% if contact.picture %}
                             <img src="{{ contact.picture.url }}" alt="{{ contact.name }}">
                         {% else %}
-                            <img src="{% static 'profile_pics/default.jpg' %}" alt="{{ contact.name }}">
+                            <img src="{{ MEDIA_URL }}default.jpg" alt="{{ contact.name }}">
                         {% endif %}
                         <h3>{{ contact.name }}</h3>
                     </div>

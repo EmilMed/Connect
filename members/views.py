@@ -12,9 +12,11 @@ from .forms import ContactForm, ProfileForm, UserSettingsForm, TimeRangeForm, Da
 import json
 from .constants import DAYS_OF_WEEK
 from datetime import timedelta, datetime
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseBadRequest
 from django.db.models import Q
+from django import forms
 from collections import defaultdict
+from django.middleware.csrf import get_token 
 
 #PROFILE FUNCTIONS
 
@@ -28,25 +30,16 @@ def profile(request):
             form.save()
             messages.success(request, "Profile updated successfully.")
             return redirect('profile')
+        else:
+            messages.error(request, "There was an error updating your profile. Please check the form and try again.")
     else:
         form = ProfileForm(instance=profile)
+        form.fields['birthday'].widget = forms.DateInput(attrs={'type': 'date'})
     
     return render(request, 'profile.html', {
         'profile': profile,
         'form': form
     })
-
-@login_required
-def edit_profile(request):
-    profile = request.user.profile
-    if request.method == 'POST':
-        form = ProfileForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect('profile')
-    else:
-        form = ProfileForm(instance=profile)
-    return render(request, 'edit_profile.html', {'form': form})
 
 #CONNECT FUNCTIONS
 
@@ -68,11 +61,25 @@ def connect(request):
 
 @login_required
 def mark_as_read(request):
-    if request.method == "POST" and 'action' in request.POST and request.POST['action'] == 'mark_as_read':
-        notification_ids = request.POST.getlist('notification_ids')
-        notifications_read = Notification.objects.filter(id__in=notification_ids)
-        for notification in notifications_read:
-            notification.mark_as_read()
+    if request.method == "POST":
+        if 'action' in request.POST:
+            action = request.POST['action']
+            
+            if action == 'mark_as_read':
+                # Mark selected notifications as read
+                notification_ids = request.POST.getlist('notification_ids')
+                notifications_read = Notification.objects.filter(id__in=notification_ids, user=request.user)
+                for notification in notifications_read:
+                    notification.mark_as_read()
+                messages.success(request, "Selected notifications marked as read.")
+
+            elif action == 'mark_all_as_read':
+                # Mark all unread notifications as read
+                unread_notifications = Notification.objects.filter(user=request.user, read=False)
+                for notification in unread_notifications:
+                    notification.mark_as_read()
+                messages.success(request, "All notifications marked as read.")
+
         return redirect("connect")
     
     return render(request, 'connect.html', {
@@ -191,17 +198,16 @@ def calendar(request):
     }
     return render(request, 'calendar.html', context)
 
+
 @login_required
 def delete_meeting(request, meeting_id):
+    meeting = get_object_or_404(Meeting, id=meeting_id, user=request.user)
     if request.method == 'POST':
-        meeting = get_object_or_404(Meeting, id=meeting_id)
         meeting.delete()
         messages.success(request, "Meeting successfully deleted.")
-        return JsonResponse({'success': True, 'redirect_url': redirect('calendar').url})
-    else:
-        return JsonResponse({'success': False}, status=400)
+        return redirect('calendar')  # Redirect to the calendar page
     
-from django.middleware.csrf import get_token 
+    return redirect('calendar')  # In case of a GET request or any other method, just redirect
 
 @login_required
 def day_calendar(request, date):
@@ -261,7 +267,7 @@ def user_logout(request):
 
 #MAIN FUNCTIONS
 
-@login_required
+@login_required(login_url='login')
 def main(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     unread_notifications_count = Notification.objects.filter(user=request.user, read=False).count()
@@ -348,6 +354,7 @@ def contact_details(request, pk):
             return redirect('contact_details', pk=contact.pk)
     else:
         form = ContactForm(instance=contact, user=request.user)
+        form.fields['birthday'].widget = forms.DateInput(attrs={'type': 'date'})
     return render(request, 'contact_details.html', {
         'contact': contact,
         'source': source,
@@ -361,10 +368,10 @@ def user_settings(request):
     user = request.user
 
     # Fetch all groups related to the current user
-    all_groups = Group.objects.filter(user=user)
+    user_groups = Group.objects.filter(user=user)
 
     # Ensure UserSettings exists for all groups
-    for group in all_groups:
+    for group in user_groups:
         if not UserSettings.objects.filter(user=user, group=group).exists():
             UserSettings.objects.create(user=user, group=group, frequency=0)
 
@@ -381,15 +388,7 @@ def user_settings(request):
     daily_time_range_form = DailyTimeRangeForm(request.POST or None)
 
     # Prepare dictionary to store group frequencies
-    group_frequencies = {}
-    for user_settings in user_settings_list:
-        group_frequencies[user_settings.group.name] = user_settings.frequency
-
-    # Initialize forms for updating group frequencies
-    freq_forms = [
-        UserSettingsForm(request.POST if request.method == 'POST' else None, instance=user_settings, prefix=f'freq_{user_settings.id}')
-        for user_settings in user_settings_list
-    ]
+    group_frequencies = {us.group.name: us.frequency for us in user_settings_list}
 
     if request.method == 'POST':
         if 'update_time_range' in request.POST and daily_time_range_form.is_valid():
@@ -399,27 +398,22 @@ def user_settings(request):
 
             if start_time and end_time:
                 if start_time > end_time:
-                    # Return an error message or handle appropriately
                     daily_time_range_form.add_error(None, "Start time cannot be after end time.")
                 else:
                     timerange, created = TimeRange.objects.get_or_create(
                         day=day,
                         start_time=start_time,
                         end_time=end_time,
-                        defaults={'meeting_duration': 60} 
+                        defaults={'meeting_duration': 60}
                     )
 
-                    # Delete existing UserTimeRange entries for the specific day
                     UserTimeRange.objects.filter(usersettings__user=user, timerange__day=day).delete()
 
-                    # Create or update UserTimeRange for each UserSettings
                     for user_settings in user_settings_list:
-                        user_time_range, created = UserTimeRange.objects.get_or_create(
+                        UserTimeRange.objects.create(
                             usersettings=user_settings,
                             timerange=timerange
                         )
-                        user_time_range.timerange = timerange
-                        user_time_range.save()
 
             return redirect('user_settings')
 
@@ -427,26 +421,29 @@ def user_settings(request):
             day_to_reset = request.POST.get('day_to_reset')
             if day_to_reset:
                 UserTimeRange.objects.filter(usersettings__user=user, timerange__day=day_to_reset).delete()
-                return redirect('user_settings')
 
-        # Handle frequency form submission
-        for form in freq_forms:
-            if form.is_valid():
-                form.save()
-                # Update the group frequencies dictionary after saving the form
-                group_frequencies[form.instance.group.name] = form.cleaned_data['frequency']
-            else:
-                print(f"Form invalid for group {form.instance.group.name}")
+        if 'update_frequency' in request.POST:
+            group_id = request.POST.get('group')
+            frequency = request.POST.get('frequency')
+
+            if group_id and frequency is not None:
+                group = Group.objects.get(id=group_id, user=user)
+                user_settings, created = UserSettings.objects.get_or_create(user=user, group=group)
+                user_settings.frequency = frequency
+                user_settings.save()
+                messages.success(request, f"Frequency for {group.name} updated to {frequency} days.")
+
+                # Update the group frequencies dictionary after saving
+                group_frequencies[group.name] = frequency
 
         return redirect('user_settings')
 
-    # Prepare context for rendering the template
     context = {
         'time_range_form': daily_time_range_form,
-        'freq_forms': freq_forms,
         'user_settings_list': user_settings_list,
         'general_time_ranges': general_time_ranges,
         'days_of_week': DAYS_OF_WEEK,
+        'user_groups': user_groups,
         'group_frequencies': group_frequencies,
     }
 
@@ -456,72 +453,115 @@ def user_settings(request):
 
 @login_required
 def schedule_meeting(request, notification_id):
-    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    try:
+        notification = Notification.objects.get(id=notification_id, user=request.user)
+    except Notification.DoesNotExist:
+        messages.error(request, "The notification you're trying to access no longer exists.")
+        return redirect('connect')
+    
     group = Group.objects.filter(user=request.user).first()
-    contact = notification.contact
 
-    # Calculate the end time based on a predefined meeting duration
-    meeting_duration = timedelta(hours=1)
-    scheduled_meeting_time = notification.scheduled_meeting_time
-    if timezone.is_naive(scheduled_meeting_time):
-        scheduled_meeting_time = timezone.make_aware(scheduled_meeting_time, timezone.get_current_timezone())
-    end_time = scheduled_meeting_time + meeting_duration if scheduled_meeting_time else None
+    # Filter meetings based on the notification's contact and group
+    meetings = Meeting.objects.filter(
+        user=request.user,
+        group=group,
+        person_met=notification.contact
+    )
+
+    if meetings.exists():
+        # If there are multiple meetings, choose the most recent one or handle duplicates as needed
+        meeting = meetings.latest('scheduled_time')
+    else:
+        # If no meeting exists, create a new one
+        meeting = Meeting.objects.create(
+            user=request.user,
+            group=group,
+            person_met=notification.contact,
+            scheduled_time=notification.scheduled_meeting_time,
+            location='Defined location'
+        )
 
     if request.method == 'POST':
-        if 'confirm' in request.POST:
-            # Log the data being saved
-            print(f"Creating meeting: user={request.user}, group={group}, contact={contact}, scheduled_time={scheduled_meeting_time}")
-            if scheduled_meeting_time < timezone.now():
-                messages.error(request, "You cannot schedule a meeting in the past.")
-                return redirect('notification_detail', notification_id=notification_id)
-
-
-            # Create a new Meeting object with scheduled_time set
-            Meeting.objects.create(
-                user=request.user,
-                group=group,
-                person_met=contact,
-                scheduled_time=scheduled_meeting_time,  # Use this field for the actual meeting time
-                timestamp=timezone.now(),
-                location='Defined location'  # Assume location is defined here or taken from another input
-            )
-            messages.success(request, f"You have confirmed a meeting with {contact.name} on {scheduled_meeting_time.strftime('%Y-%m-%d %H:%M')}.")
-            return redirect('calendar')
-        
-        elif 'update_time' in request.POST:
-            # Retrieve the updated meeting time from the form
+        if 'update_time' in request.POST:
             new_date_str = request.POST.get('new_date')
             new_time_str = request.POST.get('new_time')
-            new_datetime_str = f"{new_date_str}T{new_time_str}"
-            new_scheduled_time = timezone.make_aware(datetime.strptime(new_datetime_str, '%Y-%m-%dT%H:%M'))
 
-            # Update the notification with the new scheduled time
-            notification.scheduled_meeting_time = new_scheduled_time
-            notification.save()
+            if new_date_str and new_time_str:
+                try:
+                    new_datetime_str = f"{new_date_str}T{new_time_str}"
+                    new_scheduled_time = timezone.make_aware(datetime.strptime(new_datetime_str, '%Y-%m-%dT%H:%M'))
+                    if new_scheduled_time < timezone.now():
+                        messages.error(request, "Meeting time cannot be in the past.")
+                        return redirect('schedule_meeting', notification_id=notification_id)
+                    # Update the meeting's scheduled time
+                    meeting.scheduled_time = new_scheduled_time
+                    meeting.save()
+                    messages.success(request, "Meeting time updated successfully.")
+                except ValueError:
+                    messages.error(request, "Invalid date or time entered.")
+            else:
+                messages.error(request, "Both date and time must be provided.")
 
-            messages.success(request, "Meeting time updated successfully.")
-            return redirect('schedule_meeting', notification_id=notification_id)  # Corrected redirect here
-        
+            return redirect('schedule_meeting', notification_id=notification_id)
+
+        elif 'confirm' in request.POST:
+            messages.success(request, f"You have confirmed a meeting with {notification.contact.name}.")
+            return redirect('calendar')
+
         elif 'cancel' in request.POST:
-            return redirect('notification_detail', notification_id=notification_id)
+            meeting.delete()
+            messages.success(request, "Meeting canceled successfully.")
+            return redirect('calendar')
 
-    # Prepare meetings data for debugging or display purposes
-    meetings = Meeting.objects.filter(user=request.user).order_by('timestamp')
-    meetings_data = [
-        {
-            'title': f"{meeting.user.username} met {meeting.person_met.name} at {meeting.group.name}",
-            'start': meeting.scheduled_time.strftime('%Y-%m-%dT%H:%M:%S') if meeting.scheduled_time else 'No scheduled time',
-            'end': (meeting.scheduled_time + meeting_duration).strftime('%Y-%m-%dT%H:%M:%S') if meeting.scheduled_time else 'No end time'
-        }
-        for meeting in meetings
-    ]
+    scheduled_meeting_time = meeting.scheduled_time
+    end_time = scheduled_meeting_time + meeting.duration
 
     context = {
-        'notification': notification,
         'scheduled_meeting_time': scheduled_meeting_time,
         'end_time': end_time,
         'notification_id': notification_id,
-        'meetings_data': json.dumps(meetings_data)
     }
 
     return render(request, 'schedule_meeting.html', context)
+
+
+@login_required
+def edit_meeting(request, meeting_id):
+    meeting = get_object_or_404(Meeting, id=meeting_id, user=request.user)
+
+    if request.method == 'POST':
+        if 'update_time' in request.POST:
+            new_date_str = request.POST.get('new_date')
+            new_time_str = request.POST.get('new_time')
+            new_location = request.POST.get('location')
+
+            if new_date_str and new_time_str:
+                try:
+                    new_datetime_str = f"{new_date_str}T{new_time_str}"
+                    new_scheduled_time = timezone.make_aware(datetime.strptime(new_datetime_str, '%Y-%m-%dT%H:%M'))
+                    if new_scheduled_time < timezone.now():
+                        messages.error(request, "Meeting time cannot be in the past.")
+                        return redirect('edit_meeting', meeting_id=meeting_id)
+                    # Update the meeting's scheduled time, location, and calculate the new end time
+                    meeting.scheduled_time = new_scheduled_time
+                    meeting.location = new_location
+                    meeting.save()
+
+                    messages.success(request, "Meeting updated successfully.")
+                    return redirect('day_calendar', date=new_scheduled_time.date())
+                except ValueError:
+                    messages.error(request, "Invalid date or time entered.")
+            else:
+                messages.error(request, "Both date and time must be provided.")
+
+    scheduled_meeting_time = meeting.scheduled_time
+    end_time = scheduled_meeting_time + timedelta(hours=1)  # Ensure the end time is one hour after the start time
+
+    context = {
+        'meeting': meeting,
+        'scheduled_meeting_time': scheduled_meeting_time,
+        'end_time': end_time,
+        'date': scheduled_meeting_time.date().strftime('%Y-%m-%d'),
+    }
+
+    return render(request, 'edit_meeting.html', context)

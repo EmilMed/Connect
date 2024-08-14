@@ -140,12 +140,20 @@
 
 <div class="container">
     <div class="header">
-        <a class="back-button" href="{% url 'notification_detail' notification_id %}">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
-            </svg>
-        </a>
-        <h1>Schedule Meeting</h1>
+        {% if date %}
+            <a class="back-button" href="{% url 'day_calendar' date %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+                </svg>
+            </a>
+        {% else %}
+            <a class="back-button" href="{% url 'calendar' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+                </svg>
+            </a>
+        {% endif %}
+        <h1>Edit Meeting</h1>
     </div>
     <div class="meeting-container">
         <div class="meeting-date">
@@ -158,7 +166,7 @@
 
     <!-- Form to change meeting date/time -->
     <div class="form-container">
-        <form method="post" action="{% url 'schedule_meeting' notification_id %}">
+        <form method="post" action="{% url 'edit_meeting' meeting.id %}">
             {% csrf_token %}
             <label for="new_date">Change Date:</label>
             <input type="date" name="new_date" id="new_date" value="{{ scheduled_meeting_time|date:'Y-m-d' }}">
@@ -166,16 +174,11 @@
             <label for="new_time">Change Start Time:</label>
             <input type="time" name="new_time" id="new_time" value="{{ scheduled_meeting_time|time:'H:i' }}">
 
-            <button type="submit" name="update_time" class="btn btn-secondary">Update Settings</button>
-        </form>
+            <label for="location">Change Location:</label>
+            <input type="text" name="location" id="location" value="{{ meeting.location }}">
 
-        <!-- Buttons to confirm or cancel the meeting -->
-        <form method="post" action="{% url 'schedule_meeting' notification_id %}">
-            {% csrf_token %}
-            <button type="submit" name="confirm" value="1" class="btn btn-primary">Confirm</button>
-            <button type="submit" name="cancel" value="0" class="btn btn-danger">Cancel</button>
+            <button type="submit" name="update_time" class="btn btn-secondary">Update Meeting</button>
         </form>
     </div>
 </div>
 {% endblock %}
-

@@ -160,4 +160,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #CELERY SETTINGS
 CELERY_BROKER_URL = 'redis://localhost:6379/0' 
-CELERY_RESULT_BA
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' 
+
+LOGIN_URL = '/login/'  

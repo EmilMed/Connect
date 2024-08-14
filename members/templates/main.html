@@ -8,7 +8,7 @@
 {% block content %}
 <div class="home-container">
     {% if request.user.is_authenticated %}
-      <h1>Welcome {{ request.user.first_name }}!</h1>
+      <h1>Welcome {{ request.user.username }}!</h1>
       <div class="profile-picture-container">
                 {% if profile.image %}
                     <img src="{{ profile.image.url }}" id="profileImage">
@@ -109,4 +109,8 @@
 
     .settings-icon {
         display: block;
-        
+        margin: 20px auto;
+    }
+    
+</style>
+{% endblock %}

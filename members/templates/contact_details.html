@@ -9,42 +9,60 @@
 {% block content %}
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-    .container {
-        font-family: 'Poppins', sans-serif;
+    .header {
+        max-width: 800px;
+        padding: 10px 0;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 120vh;
-        background-color: #f5f5f5;
-    }
-    .profile-card {
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-        width: 90%;
-        max-width: 400px;
-        padding: 20px;
-        text-align: center;
         position: relative;
     }
-    .profile-picture {
+    .back-button {
+        font-size: 20px;
+        cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
+    .contact-page-wrapper {
+        font-family: 'Poppins', sans-serif;
+        background-color: #f5f5f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+        color: #000;
+    }
+    .contact-page {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        width: 300px;
+        position: relative;
+    }
+    .contact-page h1 {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .contact-page .contact-img-wrapper {
+        position: relative;
         width: 150px;
         height: 150px;
+        margin: 0 auto 20px auto;
         border-radius: 50%;
-        background-color: #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: center;
         overflow: hidden;
-        margin: 0 auto 20px;
-        position: relative;
     }
-    .profile-picture img {
+    .contact-page .contact-img-wrapper img {
         width: 100%;
         height: 100%;
         object-fit: cover;
     }
-    .change-picture {
+    .contact-page .contact-img-wrapper .change-pic-btn {
         position: absolute;
         bottom: 0;
         left: 50%;
@@ -55,137 +73,141 @@
         border-radius: 5px;
         font-size: 12px;
         cursor: pointer;
-        display: none; /* Hide the label initially */
+        display: none;
+        text-align: center;
     }
-    .profile-picture:hover .change-picture {
-        display: block; /* Show the label when hovering over the picture */
-    }
-    .profile-card h1 {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 20px;
-    }
-    .form-group {
-        text-align: left;
-        margin-bottom: 15px;
-    }
-    .form-group label {
+    .contact-page .contact-img-wrapper:hover .change-pic-btn {
         display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
     }
-    .form-group input,
-    .form-group textarea,
-    .form-group select {
-        width: 100%;
-        padding: 10px;
-        font-size: 14px;
+    .contact-page label {
+        display: block;
+        margin-top: 10px;
+    }
+    .contact-page input, .contact-page select {
+        width: 94%;
+        padding: 8px;
+        margin-top: 5px;
         border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+    .contact-page button {
+        background-color: #000;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
         border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin-top: 20px;
+        display: block;
+        width: 100%;
     }
-    .form-group select {
-        height: auto;
+    .hidden {
+        display: none;
     }
-    .checkbox-group {
+
+        .checkbox-group {
         display: flex;
         flex-direction: column;
+        margin-top: 10px;
     }
+
     .checkbox-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 5px;
+        width: 100%;  /* Ensures the item spans the entire width of the form */
     }
+
     .checkbox-item label {
         flex-grow: 1;
-        margin-right: 10px;
-    }
-    .checkbox-item input {
-        margin-left: auto;
-    }
-    .btn {
-        background-color: #000;
-        color: #fff;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
+        text-align: left;  /* Aligns the label to the left */
         font-weight: bold;
-        width: 100%;
-        margin-top: 10px;
     }
-    #fileInput {
-        display: none; /* Hide the actual file input */
+
+    .checkbox-item input {
+        flex-grow: 0;
+        margin-left: auto;  /* Moves the checkbox to the right */
     }
+
 </style>
 
-<div class="container">
-    <div class="profile-card">
-        <form method="post" enctype="multipart/form-data" action="{% url 'contact_details' contact.pk %}">
+<div class="contact-page-wrapper">
+    <div class="contact-page">
+        <div class="header">
+            <a class="back-button" href="{% url 'contacts' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+                </svg>
+            </a>
+            <h1>Contact Details</h1>
+        </div>
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <div class="profile-picture">
+            <div class="contact-img-wrapper">
                 {% if contact.picture %}
-                    <img src="{{ contact.picture.url }}" alt="{{ contact.name }}" id="profileImage">
+                    <img src="{{ contact.picture.url }}" id="contactImage">
                 {% else %}
-                    <img src="{{ MEDIA_URL }}default.jpg" alt="Default Picture" id="profileImage">
+                    <img src="{{ MEDIA_URL }}profile_pics/default.jpg" id="contactImage">
                 {% endif %}
-                <label for="fileInput" class="change-picture">{% trans "Change Picture" %}</label>
-                <input type="file" id="fileInput" name="picture" accept="image/*" onchange="previewImage(event)">
+                <label for="id_picture" class="change-pic-btn">Change Picture</label>
+                <input type="file" name="picture" id="id_picture" class="hidden" accept="image/*" onchange="previewImage(event)">
             </div>
-            <h1>{{ contact.name }}</h1>
-            <div class="form-group">
-                <label for="name">{% trans "Name" %}</label>
-                {{ form.name }}
-            </div>
-            <div class="form-group">
-                <label for="phone">{% trans "Phone" %}</label>
-                {{ form.phone }}
-            </div>
-            <div class="form-group">
-                <label for="hobbies">{% trans "Hobbies" %}</label>
-                {{ form.hobbies }}
-            </div>
-            <div class="form-group">
-                <label for="birthday">{% trans "Birthday" %}</label>
-                {{ form.birthday }}
-            </div>
-            <div class="form-group">
-                <label for="food">{% trans "Favorite Food" %}</label>
-                {{ form.food }}
-            </div>
-            <div class="form-group">
-                <div class="checkbox-group">
-                    {% for checkbox in form.groups %}
-                        <div class="checkbox-item">
-                            <label>{{ checkbox.choice_label }}</label>
-                            {{ checkbox.tag }}
-                        </div>
-                    {% endfor %}
+
+            {% if form.errors %}
+                <div class="error-list">
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
+            {% endif %}
+
+            <label for="id_name">Name:</label>
+            {{ form.name }}
+
+            <label for="id_phone">Phone:</label>
+            {{ form.phone }}
+
+            <label for="id_hobbies">Hobbies:</label>
+            {{ form.hobbies }}
+
+            <label for="id_birthday">Birthday:</label>
+            {{ form.birthday }}
+
+            <label for="id_food">Favorite Food:</label>
+            {{ form.food }}
+
+            <label>Groups:</label>
+            <div class="checkbox-group">
+                {% for checkbox in form.groups %}
+                    <div class="checkbox-item">
+                        {{ checkbox.choice_label }}
+                        {{ checkbox.tag }}
+                    </div>
+                {% endfor %}
             </div>
-            <div class="form-group" style="display: none;">
-                <label for="picture">{% trans "Picture" %}</label>
-                {{ form.picture }}
-            </div>
-            <button type="submit" class="btn">{% trans "Save" %}</button>
+
+            <button type="submit">Save</button>
         </form>
     </div>
 </div>
 
 <script>
-    document.querySelector('.change-picture').addEventListener('click', function() {
-        document.querySelector('#fileInput').click();
-    });
-
-    function previewImage(event) {
-        const reader = new FileReader();
-        reader.onload = function() {
-            const output = document.getElementById('profileImage');
-            output.src = reader.result;
-        }
-        reader.readAsDataURL(event.target.files[0]);
+function previewImage(event) {
+    const reader = new FileReader();
+    reader.onload = function() {
+        const output = document.getElementById('contactImage');
+        output.src = reader.result;
     }
+    reader.readAsDataURL(event.target.files[0]);
+}
 </script>
 
 {% endblock %}

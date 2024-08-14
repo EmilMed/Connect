@@ -9,7 +9,24 @@
 {% block content %}
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
-
+    .header {
+        max-width: 800px;
+        padding: 10px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    .back-button {
+        font-size: 20px;
+        cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
+    }
     .profile-page-wrapper {
         font-family: 'Poppins', sans-serif;
         background-color: #f5f5f5;
@@ -88,11 +105,24 @@
     .hidden {
         display: none;
     }
+
+    .error-list {
+        color: red;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
 </style>
 
 <div class="profile-page-wrapper">
     <div class="profile-page">
-        <h1>Profile Details</h1>
+        <div class="header">
+            <a class="back-button" href="{% url 'main' %}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+                </svg>
+            </a>
+            <h1>Profile Details</h1>
+        </div>
         <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="profile-img-wrapper">
@@ -104,7 +134,22 @@
                 <label for="id_image" class="change-pic-btn">Change Picture</label>
                 <input type="file" name="image" id="id_image" class="hidden" accept="image/*" onchange="previewImage(event)">
             </div>
-            {{ form.non_field_errors }}
+
+            {% if form.errors %}
+                <div class="error-list">
+                    <ul>
+                        {% for field in form %}
+                            {% for error in field.errors %}
+                                <li>{{ field.label }}: {{ error }}</li>
+                            {% endfor %}
+                        {% endfor %}
+                        {% for error in form.non_field_errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
             <label for="id_name">Name:</label>
             {{ form.name }}
 

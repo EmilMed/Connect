@@ -5,6 +5,7 @@ from members.models import Notification, UserSettings, Meeting, Group, Contact
 from celery import shared_task
 from club.celery import app
 from .constants import DAYS_OF_WEEK
+from .models import UserTimeRange
 
 @shared_task
 def delete_read_notifications():
@@ -21,29 +22,32 @@ def generate_notifications():
     now = timezone.now()
     if timezone.is_naive(now):
         now = timezone.make_aware(now, timezone.get_current_timezone())
-    
+
     for group in Group.objects.all():
         for contact in group.contacts.all():
             user = group.user
             logger.info(f"Processing notifications for user {user.username} and contact {contact.name}")
-            
+
             last_meeting = Meeting.objects.filter(user=user, group=group, person_met=contact).order_by('-timestamp').first()
             user_settings = UserSettings.objects.filter(user=user, group=group).first()
             future_meeting_exists = Meeting.objects.filter(user=user, group=group, person_met=contact, scheduled_time__gte=now).exists()
-            
+
             if future_meeting_exists:
                 logger.info(f"Future meeting already scheduled for {user.username} and {contact.name} from {group.name}. Skipping notification.")
                 continue
 
             if user_settings:
                 frequency = user_settings.frequency
-                time_ranges = user_settings.preferred_time_ranges.all()
+                time_ranges = UserTimeRange.objects.filter(usersettings=user_settings)
 
-                preferred_days = [tr.day for tr in time_ranges]
-                preferred_start_times = {tr.day: tr.start_time for tr in time_ranges}
-                preferred_end_times = {tr.day: tr.end_time for tr in time_ranges}
+                if not time_ranges.exists():
+                    logger.warning(f"No UserTimeRange records found for {user.username} in group {group.name}. Skipping notification.")
+                    continue
 
-                # Skip notification if no preferred days are set
+                preferred_days = [tr.timerange.day for tr in time_ranges]
+                preferred_start_times = {tr.timerange.day: tr.timerange.start_time for tr in time_ranges}
+                preferred_end_times = {tr.timerange.day: tr.timerange.end_time for tr in time_ranges}
+
                 if not preferred_days:
                     logger.info(f"No preferred days set for {user.username} in group {group.name}. Skipping notification.")
                     continue
@@ -89,6 +93,7 @@ def generate_notifications():
                         logger.info(f"No valid meeting time found for {user.username} with {contact.name}. Skipping notification.")
             else:
                 logger.info(f"No settings found for {user.username} and {group.name}")
+
 
 def schedule_meeting_time(now, preferred_start_times, preferred_end_times, preferred_days):
     if timezone.is_naive(now):

@@ -5,6 +5,7 @@ from django.contrib.auth.forms import UserCreationForm
 import json
 from .constants import DAYS_OF_WEEK
 from datetime import timedelta
+from phonenumber_field.modelfields import PhoneNumberField
 
 class SignupForm(UserCreationForm):
     class Meta:
@@ -19,7 +20,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, unique=True)
     image = models.ImageField(default='profile_pics/default.jpg', upload_to='profile_pics/')
     name = models.CharField(max_length=100, blank=True)
-    phone = models.IntegerField(blank=True, null=True)
+    phone = PhoneNumberField(blank=True, null=True)
     hobbies = models.CharField(max_length=100, blank=True)
     birthday = models.DateField(blank=True, null=True, default=None)
     food = models.CharField(max_length=100, blank=True)
@@ -31,7 +32,7 @@ class Contact(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='contacts')
     groups = models.ManyToManyField('Group', related_name='contacts', blank=True)
     name = models.CharField(max_length=100, blank=True)
-    phone = models.IntegerField(blank=True, null=True)
+    phone = PhoneNumberField(blank=True, null=True)
     hobbies = models.CharField(max_length=100, blank=True)
     birthday = models.DateField(null=True, blank=True)
     food = models.CharField(max_length=100, blank=True)
@@ -84,7 +85,6 @@ class UserSettings(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     group = models.ForeignKey('Group', on_delete=models.CASCADE)
     frequency = models.IntegerField()
-    preferred_time_ranges = models.ManyToManyField(TimeRange, through='UserTimeRange', related_name='user_settings_set')
 
     class Meta:
         unique_together = ('user', 'group')
@@ -114,7 +114,6 @@ class Meeting(models.Model):
     def __str__(self):
         return f"{self.user.username} met {self.person_met.name} at {self.group.name} group"
 
-
 class Recommendation(models.Model):
     RECOMMENDATION_TYPES = [
         ('Restaurant', 'Restaurant'),
@@ -127,4 +126,4 @@ class Recommendation(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.type}: {self.name} for {self.
+        return f"{self.type}: {self.name} for {self.contact.name}"

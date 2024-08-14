@@ -6,11 +6,12 @@ from django.utils.translation import gettext_lazy as _
 import json
 
 class ContactForm(forms.ModelForm):
-    birthday = forms.CharField(widget=forms.TextInput(attrs={'placeholder': 'Birthday'}), required=False)
+    phone = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'placeholder': 'Enter your phone number'}))
 
     class Meta:
         model = Contact
         fields = ['name', 'phone', 'hobbies', 'birthday', 'food', 'picture', 'groups']
+        widgets = {'birthday': forms.DateInput(attrs={'type': 'date'})}
         
     groups = forms.ModelMultipleChoiceField(queryset=Group.objects.all(), widget=forms.CheckboxSelectMultiple, required=False)
     
@@ -21,14 +22,21 @@ class ContactForm(forms.ModelForm):
             self.fields['groups'].queryset = Group.objects.filter(user=user)
 
 class ProfileForm(forms.ModelForm):
+    phone = forms.CharField(max_length=15, widget=forms.TextInput(attrs={'placeholder': 'Enter your phone number'}))
     class Meta:
         model = Profile
         fields = ['image', 'name', 'phone', 'hobbies', 'birthday', 'food']
+        widgets = {'birthday': forms.DateInput(attrs={'type': 'date'})}
 
 class UserSettingsForm(forms.ModelForm):
     class Meta:
         model = UserSettings
         fields = ['group', 'frequency']
+
+    def __init__(self, *args, **kwargs):
+        user = kwargs.pop('user')
+        super(UserSettingsForm, self).__init__(*args, **kwargs)
+        self.fields['group'].queryset = Group.objects.filter(user=user)
 
 class TimeRangeForm(forms.ModelForm):
     class Meta:

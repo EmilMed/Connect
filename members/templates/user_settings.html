@@ -12,7 +12,23 @@
         align-items: center;
     }
     .header {
-        text-align: center;
+        width: 20%;
+        max-width: 800px;
+        padding: 10px 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        position: relative;
+    }
+    .back-button {
+        font-size: 20px;
+        cursor: pointer;
+        color: #000;
+        margin-right: 20px;
+        text-decoration: none;
+        position: absolute;
+        left: 0;
+        font-weight: bold;
     }
     h1, h2 {
         font-weight: bold;
@@ -108,13 +124,18 @@
 
 <div class="container">
     <div class="header">
+        <a class="back-button" href="{% url 'main' %}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M5.854 15.854a.5.5 0 0 1-.708 0l-5.5-5.5a.5.5 0 0 1 0-.708l5.5-5.5a.5.5 0 0 1 .708.708L1.707 9.5H14.5a.5.5 0 0 1 0 1H1.707l4.147 4.146a.5.5 0 0 1 0 .708z"/>
+            </svg>
+        </a>
         <h1>Settings</h1>
     </div>
     
     <form method="post">
         {% csrf_token %}
         <fieldset>
-            <legend>Time Ranges</legend>
+            <legend>Week Availability Settings</legend>
             {{ time_range_form.as_p }}
             <button type="submit" name="update_time_range">Update Time Range</button>
         </fieldset>
@@ -123,16 +144,25 @@
     <form method="post">
         {% csrf_token %}
         <fieldset>
-            <legend>Group Reminder Frequencies</legend>
-            {% for form in freq_forms %}
-                {{ form.as_p }}
-            {% endfor %}
-            <button type="submit">Update Group Frequencies</button>
+            <legend>How often do you want to receive notifications for each group?</legend>
+            
+            <label for="group">Group:</label>
+            <select name="group" id="group" required>
+                <option value="" disabled selected>Select a group</option>
+                {% for group in user_groups %}
+                    <option value="{{ group.id }}">{{ group.name }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="frequency">Frequency (in days):</label>
+            <input type="number" name="frequency" id="frequency" min="0" required>
+
+            <button type="submit" name="update_frequency">Update Group Frequency</button>
         </fieldset>
     </form>
 
     <hr>
-    <h1>Current Settings</h1>
+    <h1>Your Settings</h1>
     <h2><strong>Time Ranges:</strong></h2>
     <ul>
         {% for day, day_display in days_of_week %}
@@ -151,7 +181,7 @@
     <h2>All Group Reminder Frequencies</h2>
     <ul>
         {% for group, frequency in group_frequencies.items %}
-            <li><strong>Group:</strong> {{ group }} <strong> Reminder Frequency:</strong>every {{ frequency }} days</li>
+            <li><strong>Group:</strong> {{ group }} <strong> Reminder Frequency:</strong> every {{ frequency }} days</li>
         {% endfor %}
     </ul>
 </div>
