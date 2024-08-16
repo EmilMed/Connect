@@ -156,7 +156,7 @@
         </div>
     </div>
 
-    <!-- Form to change meeting date/time -->
+    <!-- Single Form to handle both updating and confirming -->
     <div class="form-container">
         <form method="post" action="{% url 'schedule_meeting' notification_id %}">
             {% csrf_token %}
@@ -167,15 +167,9 @@
             <input type="time" name="new_time" id="new_time" value="{{ scheduled_meeting_time|time:'H:i' }}">
 
             <button type="submit" name="update_time" class="btn btn-secondary">Update Settings</button>
-        </form>
-
-        <!-- Buttons to confirm or cancel the meeting -->
-        <form method="post" action="{% url 'schedule_meeting' notification_id %}">
-            {% csrf_token %}
             <button type="submit" name="confirm" value="1" class="btn btn-primary">Confirm</button>
             <button type="submit" name="cancel" value="0" class="btn btn-danger">Cancel</button>
         </form>
     </div>
 </div>
 {% endblock %}
-

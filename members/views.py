@@ -362,7 +362,6 @@ def contact_details(request, pk):
     })
 
 #USER_SETTINGS
-
 @login_required
 def user_settings(request):
     user = request.user
@@ -450,7 +449,6 @@ def user_settings(request):
     return render(request, "user_settings.html", context)
 
 #SCHEDULE MEETING FUNCTIONS
-
 @login_required
 def schedule_meeting(request, notification_id):
     try:
@@ -458,63 +456,73 @@ def schedule_meeting(request, notification_id):
     except Notification.DoesNotExist:
         messages.error(request, "The notification you're trying to access no longer exists.")
         return redirect('connect')
-    
+
     group = Group.objects.filter(user=request.user).first()
-
-    # Filter meetings based on the notification's contact and group
-    meetings = Meeting.objects.filter(
-        user=request.user,
-        group=group,
-        person_met=notification.contact
-    )
-
-    if meetings.exists():
-        # If there are multiple meetings, choose the most recent one or handle duplicates as needed
-        meeting = meetings.latest('scheduled_time')
-    else:
-        # If no meeting exists, create a new one
-        meeting = Meeting.objects.create(
-            user=request.user,
-            group=group,
-            person_met=notification.contact,
-            scheduled_time=notification.scheduled_meeting_time,
-            location='Defined location'
-        )
+    meeting = None
 
     if request.method == 'POST':
-        if 'update_time' in request.POST:
-            new_date_str = request.POST.get('new_date')
-            new_time_str = request.POST.get('new_time')
+        new_date_str = request.POST.get('new_date')
+        new_time_str = request.POST.get('new_time')
 
-            if new_date_str and new_time_str:
-                try:
-                    new_datetime_str = f"{new_date_str}T{new_time_str}"
-                    new_scheduled_time = timezone.make_aware(datetime.strptime(new_datetime_str, '%Y-%m-%dT%H:%M'))
-                    if new_scheduled_time < timezone.now():
-                        messages.error(request, "Meeting time cannot be in the past.")
-                        return redirect('schedule_meeting', notification_id=notification_id)
-                    # Update the meeting's scheduled time
-                    meeting.scheduled_time = new_scheduled_time
-                    meeting.save()
+        if new_date_str and new_time_str:
+            try:
+                new_datetime_str = f"{new_date_str}T{new_time_str}"
+                new_scheduled_time = timezone.make_aware(datetime.strptime(new_datetime_str, '%Y-%m-%dT%H:%M'))
+
+                if new_scheduled_time < timezone.now():
+                    messages.error(request, "Meeting time cannot be in the past.")
+                    return redirect('schedule_meeting', notification_id=notification_id)
+
+                if 'confirm' in request.POST:
+                    meeting, created = Meeting.objects.get_or_create(
+                        user=request.user,
+                        group=group,
+                        person_met=notification.contact,
+                        defaults={
+                            'scheduled_time': new_scheduled_time,
+                            'location': 'Defined location',
+                        }
+                    )
+                    if not created:
+                        meeting.scheduled_time = new_scheduled_time
+                        meeting.save()
+
+                    messages.success(request, f"You have confirmed a meeting with {notification.contact.name}.")
+                    return redirect('calendar')
+
+                if 'update_time' in request.POST:
+                    meeting = Meeting.objects.filter(
+                        user=request.user,
+                        group=group,
+                        person_met=notification.contact
+                    ).first()
+
+                    if meeting:
+                        meeting.scheduled_time = new_scheduled_time
+                        meeting.save()
+
+                    context = {
+                        'scheduled_meeting_time': new_scheduled_time,
+                        'end_time': new_scheduled_time + timedelta(hours=1),
+                        'notification_id': notification_id,
+                    }
                     messages.success(request, "Meeting time updated successfully.")
-                except ValueError:
-                    messages.error(request, "Invalid date or time entered.")
-            else:
-                messages.error(request, "Both date and time must be provided.")
+                    return render(request, 'schedule_meeting.html', context)
 
-            return redirect('schedule_meeting', notification_id=notification_id)
+            except ValueError:
+                messages.error(request, "Invalid date or time entered.")
+        else:
+            messages.error(request, "Both date and time must be provided.")
 
-        elif 'confirm' in request.POST:
-            messages.success(request, f"You have confirmed a meeting with {notification.contact.name}.")
+        if 'cancel' in request.POST:
+            meeting = Meeting.objects.filter(user=request.user, group=group, person_met=notification.contact).first()
+            if meeting:
+                meeting.delete()
+                messages.success(request, "Meeting canceled successfully.")
             return redirect('calendar')
 
-        elif 'cancel' in request.POST:
-            meeting.delete()
-            messages.success(request, "Meeting canceled successfully.")
-            return redirect('calendar')
-
-    scheduled_meeting_time = meeting.scheduled_time
-    end_time = scheduled_meeting_time + meeting.duration
+    scheduled_meeting_time = notification.scheduled_meeting_time
+    end_time = scheduled_meeting_time + timedelta(hours=1)
 
     context = {
         'scheduled_meeting_time': scheduled_meeting_time,
@@ -523,6 +531,7 @@ def schedule_meeting(request, notification_id):
     }
 
     return render(request, 'schedule_meeting.html', context)
+
 
 
 @login_required
